@@ -1,41 +1,103 @@
 {% extends 'shop/basic.html' %}
 
-{% block title%} Contact Us - My Awesome Cart{% endblock %}
+{% block title%} Contact Us-MyCart{% endblock %}
+<link rel="icon"
+  href="https://encrypted-tbn0.gstatic.com/images?q=tbn%3AANd9GcRDtF_cxuNuaX0IVviEpz5KBFtEG4_pTgzk8Q&usqp=CAU.png"
+  type="image/x-icon">
 {% block body %}
+<style>
+  .sucess-before {
+    font-size: 19px;
+    display: inline-block;
+    background: #346034;
+    padding: 10px 55px;
+    position: absolute;
+    left: -400px;
+    transition: linear all 0.25s;
+    color: white;
+    border: 1px;
+    bottom: 40px;
+  }
+
+  .sucess-after {
+    left: 12px;
+  }
+</style>
 <div class="container my-3">
-    <h3>Contact Us</h3>
-    <form action="/contact/" method="post">{% csrf_token %}
-  <div class="form-group">
-    <label for="name">Name</label>
-    <input type="text" class="form-control" id="name" name='name' placeholder="Enter Your Name">
+  {% if user.is_authenticated %}
+  <div class="sucess-before" id="se">
+    Submitted successfully
   </div>
-  <div class="form-group">
-    <label for="name">Email</label>
-    <input type="email" class="form-control" id="email" name='email' placeholder="Enter Your Email">
-  </div>
+  <h3>Contact Us</h3>
+  <form id="form">{% csrf_token %}
+
+    <div class=" form-group">
+      <label for="name">Name</label>
+      <input type="text" class="form-control" id="name" name='name' placeholder="Enter Your Name" required="required">
+
+    </div>
+    <div class="form-group">
+      <label for="name">Email</label>
+      <input type="email" class="form-control" id="email" name='email' placeholder="Enter Your Email"
+        required="required">
+    </div>
 
     <div class="form-group">
-    <label for="name">Phone</label>
-    <input type="tel" class="form-control" id="phone" name='phone' placeholder="Enter Your Phone Number">
+      <label for="name">Phone</label>
+      <input type="tel" class="form-control" id="phone" name='phone' placeholder="Enter Your Phone Number"
+        required="required">
+    </div>
+
+
+    <div class="form-group">
+      <label for="desc">How May We Help You?</label>
+      <textarea class="form-control" id="desc" name='desc' rows="3" required="required"></textarea>
+    </div>
+    <button type="submit" id="submit" class="btn btn-success">Submit</button>
+  </form>
+  {% else %}
+  <h1 style="text-align:center">Login to Submit your query</h1>
+  <div class="text-center">
+    <a class="btn btn-outline-success" href="/login" role="button">Login</a>
   </div>
-
-
-   <div class="form-group">
-    <label for="desc">How May We Help You?</label>
-    <textarea class="form-control" id="desc" name='desc' rows="3"></textarea>
-  </div>
-        <button type="submit" class="btn btn-success">Submit</button>
-</form>
-
+  {% endif %}
 
 
 </div>
 {% endblock %}
 {% block js%}
 <script>
-{% if thank %}
-alert('Thanks for contacting us. We will get back to you soon!');
-document.location = "/";
-{% endif %}
+  $('#form').submit((event) => {
+    event.preventDefault();
+    submitConcern();
+  })
+  const submitConcern = () => {
+    $.ajax({
+      url: "/contact/", // the endpoint
+      type: "post", // http method
+      data: {
+        username: $('#name').val(),
+        email: $('#email').val(),
+        phone: $('#phone').val(),
+        desc: $('#desc').val(),
+        csrfmiddlewaretoken: '{{ csrf_token }}'
+      },
+      success: function (response) {
+        $('#form').trigger("reset");
+        $('#se').addClass('sucess-after');
+        setTimeout(() => {
+          $('#se').removeClass('sucess-after');
+        }, 1000)
+        console.log(response);
+      },
+      error: function (xhr, errmsg, err) {
+        // console.log(xhr.status + ": " + xhr.responseText);
+      }
+    });
+  }
+  {% if thank %}
+  alert('Thanks for contacting us. We will get back to you soon!');
+  document.location = "/";
+  {% endif %}
 </script>
 {% endblock %}

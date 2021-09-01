@@ -1,6 +1,29 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.auth.models import User
+from .utils import email
+from dirtyfields import DirtyFieldsMixin
 # Create your models here.
+
+
+class Users(models.Model):
+    User_CHOICES = (
+        ('Seller', 'Seller'),
+        ('Customer', 'Customer')
+    )
+    user_name = models.CharField(max_length=50, default='')
+    user_email = models.CharField(max_length=50, default='')
+    user_type = models.CharField(max_length=20, choices=User_CHOICES, default='customer')
+    user_address = models.TextField()
+    user_state = models.CharField(max_length=50, default='India')
+    user_city = models.CharField(max_length=50)
+    user_Zip = models.CharField(max_length=10)
+    user_phone = models.CharField(max_length=15, default='+91')
+    user_password = models.CharField(max_length=50,default='')
+    user_password2 = models.CharField(max_length=50,default='')
+
+    def __str__(self):
+        return self.user_name
 
 
 class Products(models.Model):
@@ -24,6 +47,7 @@ class Contact(models.Model):
     phone = models.CharField(max_length=70, default="")
     desc = models.CharField(max_length=500, default="")
 
+
     def __str__(self):
         return self.name
 
@@ -44,11 +68,16 @@ class Orders(models.Model):
         return self.name
 
 
-class OrderUpdate(models.Model):
+class OrderUpdate(DirtyFieldsMixin, models.Model):
     update_id = models.AutoField(primary_key=True)
     order_id = models.IntegerField(default="")
     update_desc = models.CharField(max_length=5000)
-    timestamp = models.DateTimeField(default=timezone.now())
+    timestamp = models.DateTimeField(default=timezone.now)
+    # info = models.ForeignKey(User, on_delete=models.CASCADE, default="")
 
-    def __str__(self):
-        return self.update_desc[0:7] + "..."
+    def save(self, *args, **kwargs):
+        if self.is_dirty():
+            dirty_fields = self.get_dirty_fields()
+            if 'update_desc' in dirty_fields:
+               email('csecec.gaurav1702635@gmail.com')
+        super().save(*args, **kwargs)
